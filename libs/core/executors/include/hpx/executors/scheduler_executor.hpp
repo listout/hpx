@@ -26,6 +26,7 @@
 #include <hpx/functional/bind_front.hpp>
 #include <hpx/functional/deferred_call.hpp>
 #include <hpx/functional/invoke_fused.hpp>
+#include <hpx/functional/tag_invoke.hpp>
 
 #include <exception>
 #include <string>
@@ -105,91 +106,23 @@ namespace hpx::execution::experimental {
             return *this;
         }
 
-        template <typename Enable =
-                      std::enable_if_t<hpx::is_invocable_v<with_priority_t,
-                          BaseScheduler, hpx::threads::thread_priority>>>
+        // support all properties exposed by the wrapped scheduler
+        template <typename Tag, typename Property,
+            typename Enable = std::enable_if_t<hpx::functional::
+                    is_tag_invocable_v<Tag, BaseScheduler, Property>>>
         friend scheduler_executor tag_invoke(
-            hpx::execution::experimental::with_priority_t,
-            scheduler_executor const& exec,
-            hpx::threads::thread_priority priority)
+            Tag, scheduler_executor const& exec, Property&& prop)
         {
-            return scheduler_executor(with_priority(exec.sched_, priority));
+            return scheduler_executor(hpx::functional::tag_invoke(
+                Tag{}, exec.sched_, HPX_FORWARD(Property, prop)));
         }
 
-        template <typename Enable = std::enable_if_t<
-                      hpx::is_invocable_v<get_priority_t, BaseScheduler>>>
-        friend hpx::threads::thread_priority tag_invoke(
-            hpx::execution::experimental::get_priority_t,
-            scheduler_executor const& exec)
+        template <typename Tag,
+            typename Enable = std::enable_if_t<
+                hpx::functional::is_tag_invocable_v<Tag, BaseScheduler>>>
+        friend decltype(auto) tag_invoke(Tag, scheduler_executor const& exec)
         {
-            return get_priority(exec.sched_);
-        }
-
-        template <typename Enable =
-                      std::enable_if_t<hpx::is_invocable_v<with_stacksize_t,
-                          BaseScheduler, hpx::threads::thread_stacksize>>>
-        friend scheduler_executor tag_invoke(
-            hpx::execution::experimental::with_stacksize_t,
-            scheduler_executor const& exec,
-            hpx::threads::thread_stacksize stacksize)
-        {
-            return scheduler_executor(with_stacksize(exec.sched_, stacksize));
-        }
-
-        template <typename Enable = std::enable_if_t<
-                      hpx::is_invocable_v<get_stacksize_t, BaseScheduler>>>
-        friend hpx::threads::thread_stacksize tag_invoke(
-            hpx::execution::experimental::get_stacksize_t,
-            scheduler_executor const& exec)
-        {
-            return get_stacksize(exec.sched_);
-        }
-
-        template <
-            typename Enable = std::enable_if_t<hpx::is_invocable_v<with_hint_t,
-                BaseScheduler, hpx::threads::thread_schedule_hint>>>
-        friend scheduler_executor tag_invoke(
-            hpx::execution::experimental::with_hint_t,
-            scheduler_executor const& exec,
-            hpx::threads::thread_schedule_hint hint)
-        {
-            return scheduler_executor(with_hint(exec.sched_, hint));
-        }
-
-        template <typename Enable = std::enable_if_t<
-                      hpx::is_invocable_v<get_hint_t, BaseScheduler>>>
-        friend hpx::threads::thread_schedule_hint tag_invoke(
-            hpx::execution::experimental::get_hint_t,
-            scheduler_executor const& exec)
-        {
-            return get_hint(exec.sched_);
-        }
-
-        template <typename Enable = std::enable_if_t<hpx::is_invocable_v<
-                      with_annotation_t, BaseScheduler, char const*>>>
-        friend scheduler_executor tag_invoke(
-            hpx::execution::experimental::with_annotation_t,
-            scheduler_executor const& exec, char const* annotation)
-        {
-            return scheduler_executor(with_annotation(exec.sched_, annotation));
-        }
-
-        template <typename Enable = std::enable_if_t<hpx::is_invocable_v<
-                      with_annotation_t, BaseScheduler, std::string>>>
-        friend scheduler_executor tag_invoke(
-            hpx::execution::experimental::with_annotation_t,
-            scheduler_executor const& exec, std::string annotation)
-        {
-            return scheduler_executor(with_annotation(exec.sched_, annotation));
-        }
-
-        template <typename Enable = std::enable_if_t<
-                      hpx::is_invocable_v<get_annotation_t, BaseScheduler>>>
-        friend char const* tag_invoke(
-            hpx::execution::experimental::get_annotation_t,
-            scheduler_executor const& exec)
-        {
-            return get_annotation(exec.sched_);
+            return hpx::functional::tag_invoke(Tag{}, exec.sched_);
         }
 
         // Associate the parallel_execution_tag executor tag type as a default
@@ -343,7 +276,7 @@ namespace hpx::execution::experimental {
         }
 
     private:
-        BaseScheduler sched_;
+        std::decay_t<BaseScheduler> sched_;
         /// \endcond
     };
 

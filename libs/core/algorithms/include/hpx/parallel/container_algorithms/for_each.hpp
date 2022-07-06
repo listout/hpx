@@ -1,4 +1,4 @@
-//  Copyright (c) 2015-2021 Hartmut Kaiser
+//  Copyright (c) 2015-2022 Hartmut Kaiser
 //
 //  SPDX-License-Identifier: BSL-1.0
 //  Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -31,7 +31,7 @@ namespace hpx { namespace ranges {
     ///                     overload of \a for_each requires \a F to meet the
     ///                     requirements of \a CopyConstructible.
     /// \tparam Proj        The type of an optional projection function. This
-    ///                     defaults to \a util::projection_identity
+    ///                     defaults to \a hpx::identity
     ///
     /// \param first        Refers to the beginning of the sequence of elements
     ///                     the algorithm will be applied to.
@@ -58,7 +58,7 @@ namespace hpx { namespace ranges {
     ///                     corresponding to the input sentinel last.
     ///
     template <typename InIter, typename Sent, typename F,
-        typename Proj = util::projection_identity>
+        typename Proj = hpx::identity>
     hpx::ranges::for_each_result<InIter, F> for_each(
         InIter first, Sent last, F&& f, Proj&& proj = Proj());
 
@@ -92,7 +92,7 @@ namespace hpx { namespace ranges {
     ///                     overload of \a for_each requires \a F to meet the
     ///                     requirements of \a CopyConstructible.
     /// \tparam Proj        The type of an optional projection function. This
-    ///                     defaults to \a util::projection_identity
+    ///                     defaults to \a hpx::identity
     ///
     /// \param first        Refers to the beginning of the sequence of elements
     ///                     the algorithm will be applied to.
@@ -124,7 +124,7 @@ namespace hpx { namespace ranges {
     ///           It returns \a last.
     ///
     template <typename ExPolicy, typename FwdIter, typename Sent, typename F,
-        typename Proj = util::projection_identity>
+        typename Proj = hpx::identity>
     FwdIter for_each(ExPolicy&& policy, FwdIter first, Sent last, F&& f,
         Proj&& proj = Proj());
 
@@ -147,7 +147,7 @@ namespace hpx { namespace ranges {
     ///                     overload of \a for_each requires \a F to meet the
     ///                     requirements of \a CopyConstructible.
     /// \tparam Proj        The type of an optional projection function. This
-    ///                     defaults to \a util::projection_identity
+    ///                     defaults to \a hpx::identity
     ///
     /// \param policy       The execution policy to use for the scheduling of
     ///                     the iterations.
@@ -173,7 +173,7 @@ namespace hpx { namespace ranges {
     /// \returns            {std::end(rng), HPX_MOVE(f)}
     ///
     template <typename Rng, typename F,
-        typename Proj = util::projection_identity>
+        typename Proj = hpx::identity>
     hpx::ranges::for_each_result<
         typename hpx::traits::range_iterator<Rng>::type, F>
     for_each(ExPolicy&& policy, Rng&& rng, F&& f, Proj&& proj = Proj());
@@ -206,7 +206,7 @@ namespace hpx { namespace ranges {
     ///                     overload of \a for_each requires \a F to meet the
     ///                     requirements of \a CopyConstructible.
     /// \tparam Proj        The type of an optional projection function. This
-    ///                     defaults to \a util::projection_identity
+    ///                     defaults to \a hpx::identity
     ///
     /// \param policy       The execution policy to use for the scheduling of
     ///                     the iterations.
@@ -249,7 +249,7 @@ namespace hpx { namespace ranges {
     ///           It returns \a last.
     ///
     template <typename ExPolicy, typename Rng, typename F,
-        typename Proj = util::projection_identity>
+        typename Proj = hpx::identity>
     typename util::detail::algorithm_result<ExPolicy,
         typename hpx::traits::range_iterator<Rng>::type>::type
     for_each(ExPolicy&& policy, Rng&& rng, F&& f, Proj&& proj = Proj());
@@ -277,7 +277,7 @@ namespace hpx { namespace ranges {
     ///                     overload of \a for_each requires \a F to meet the
     ///                     requirements of \a CopyConstructible.
     /// \tparam Proj        The type of an optional projection function. This
-    ///                     defaults to \a util::projection_identity
+    ///                     defaults to \a hpx::identity
     ///
     /// \param first        Refers to the beginning of the sequence of elements
     ///                     the algorithm will be applied to.
@@ -303,7 +303,7 @@ namespace hpx { namespace ranges {
     /// \returns            {first + count, HPX_MOVE(f)}
     ///
     template <typename InIter, typename Sent, typename F,
-        typename Proj = util::projection_identity>
+        typename Proj = hpx::identity>
     hpx::ranges::for_each_result<InIter, F> for_each(
         InIter first, Sent last, F&& f, Proj&& proj = Proj());
 
@@ -338,7 +338,7 @@ namespace hpx { namespace ranges {
     ///                     overload of \a for_each requires \a F to meet the
     ///                     requirements of \a CopyConstructible.
     /// \tparam Proj        The type of an optional projection function. This
-    ///                     defaults to \a util::projection_identity
+    ///                     defaults to \a hpx::identity
     ///
     /// \param first        Refers to the beginning of the sequence of elements
     ///                     the algorithm will be applied to.
@@ -370,12 +370,14 @@ namespace hpx { namespace ranges {
     ///           It returns \a last.
     ///
     template <typename ExPolicy, typename FwdIter, typename Size, typename F,
-        typename Proj = util::projection_identity>
+        typename Proj = hpx::identity>
     typename util::detail::algorithm_result<ExPolicy, FwdIter>::type for_each_n(
         ExPolicy&& policy, FwdIter first, Size count, F&& f,
         Proj&& proj = Proj());
 }}    // namespace hpx::ranges
+
 #else
+
 #include <hpx/config.hpp>
 #include <hpx/concepts/concepts.hpp>
 #include <hpx/iterator_support/range.hpp>
@@ -404,21 +406,23 @@ namespace hpx { namespace ranges {
     {
         // clang-format off
         template <typename InIter, typename Sent, typename F,
-            typename Proj = hpx::parallel::util::projection_identity,
+            typename Proj = hpx::identity,
             HPX_CONCEPT_REQUIRES_(
-                hpx::traits::is_input_iterator<InIter>::value &&
-                hpx::traits::is_sentinel_for<Sent, InIter>::value &&
-                hpx::parallel::traits::is_projected<Proj, InIter>::value &&
-                hpx::parallel::traits::is_indirect_callable<
+                hpx::traits::is_iterator_v<InIter> &&
+                hpx::traits::is_sentinel_for_v<Sent, InIter> &&
+                hpx::parallel::traits::is_projected_v<Proj, InIter> &&
+                hpx::parallel::traits::is_indirect_callable_v<
                     hpx::execution::sequenced_policy, F,
-                    hpx::parallel::traits::projected<Proj, InIter>>::value)>
+                    hpx::parallel::traits::projected<Proj, InIter>
+                >
+            )>
         // clang-format on
         friend for_each_result<InIter, F> tag_fallback_invoke(
             hpx::ranges::for_each_t, InIter first, Sent last, F&& f,
             Proj&& proj = Proj())
         {
-            static_assert((hpx::traits::is_forward_iterator<InIter>::value),
-                "Requires at least forward iterator.");
+            static_assert((hpx::traits::is_input_iterator_v<InIter>),
+                "Requires at least input iterator.");
 
             auto it = parallel::v1::detail::for_each<InIter>().call(
                 hpx::execution::seq, first, last, f, HPX_FORWARD(Proj, proj));
@@ -427,24 +431,24 @@ namespace hpx { namespace ranges {
 
         // clang-format off
         template <typename Rng, typename F,
-            typename Proj = hpx::parallel::util::projection_identity,
+            typename Proj = hpx::identity,
             HPX_CONCEPT_REQUIRES_(
-                hpx::traits::is_range<Rng>::value &&
-                hpx::parallel::traits::is_projected_range<Proj, Rng>::value &&
-                hpx::parallel::traits::is_indirect_callable<
+                hpx::traits::is_range_v<Rng> &&
+                hpx::parallel::traits::is_projected_range_v<Proj, Rng> &&
+                hpx::parallel::traits::is_indirect_callable_v<
                     hpx::execution::sequenced_policy, F,
-                    hpx::parallel::traits::projected_range<Proj, Rng>>::value)>
+                    hpx::parallel::traits::projected_range<Proj, Rng>
+                >
+            )>
         // clang-format on
-        friend for_each_result<typename hpx::traits::range_iterator<Rng>::type,
-            F>
+        friend for_each_result<hpx::traits::range_iterator_t<Rng>, F>
         tag_fallback_invoke(
             hpx::ranges::for_each_t, Rng&& rng, F&& f, Proj&& proj = Proj())
         {
             using iterator_type =
                 typename hpx::traits::range_traits<Rng>::iterator_type;
 
-            static_assert(
-                (hpx::traits::is_forward_iterator<iterator_type>::value),
+            static_assert((hpx::traits::is_forward_iterator_v<iterator_type>),
                 "Requires at least forward iterator.");
 
             auto it = parallel::v1::detail::for_each<iterator_type>().call(
@@ -455,21 +459,23 @@ namespace hpx { namespace ranges {
 
         // clang-format off
         template <typename ExPolicy, typename FwdIter, typename Sent, typename F,
-            typename Proj = hpx::parallel::util::projection_identity,
+            typename Proj = hpx::identity,
             HPX_CONCEPT_REQUIRES_(
-                hpx::is_execution_policy<ExPolicy>::value &&
-                hpx::traits::is_forward_iterator<FwdIter>::value &&
-                hpx::traits::is_sentinel_for<Sent, FwdIter>::value &&
-                hpx::parallel::traits::is_projected<Proj, FwdIter>::value &&
-                hpx::parallel::traits::is_indirect_callable<ExPolicy, F,
-                    hpx::parallel::traits::projected<Proj, FwdIter>>::value)>
+                hpx::is_execution_policy_v<ExPolicy> &&
+                hpx::traits::is_iterator_v<FwdIter> &&
+                hpx::traits::is_sentinel_for_v<Sent, FwdIter> &&
+                hpx::parallel::traits::is_projected_v<Proj, FwdIter> &&
+                hpx::parallel::traits::is_indirect_callable_v<
+                    ExPolicy, F,
+                    hpx::parallel::traits::projected<Proj, FwdIter>
+                >
+            )>
         // clang-format on
-        friend typename hpx::parallel::util::detail::algorithm_result<ExPolicy,
-            FwdIter>::type
-        tag_fallback_invoke(hpx::ranges::for_each_t, ExPolicy&& policy,
-            FwdIter first, Sent last, F&& f, Proj&& proj = Proj())
+        friend decltype(auto) tag_fallback_invoke(hpx::ranges::for_each_t,
+            ExPolicy&& policy, FwdIter first, Sent last, F&& f,
+            Proj&& proj = Proj())
         {
-            static_assert((hpx::traits::is_forward_iterator<FwdIter>::value),
+            static_assert((hpx::traits::is_forward_iterator_v<FwdIter>),
                 "Requires at least forward iterator.");
 
             return parallel::v1::detail::for_each<FwdIter>().call(
@@ -479,24 +485,24 @@ namespace hpx { namespace ranges {
 
         // clang-format off
         template <typename ExPolicy, typename Rng, typename F,
-            typename Proj = hpx::parallel::util::projection_identity,
+            typename Proj = hpx::identity,
             HPX_CONCEPT_REQUIRES_(
-                hpx::is_execution_policy<ExPolicy>::value &&
-                hpx::traits::is_range<Rng>::value &&
-                hpx::parallel::traits::is_projected_range<Proj, Rng>::value &&
-                hpx::parallel::traits::is_indirect_callable<ExPolicy, F,
-                    hpx::parallel::traits::projected_range<Proj, Rng>>::value)>
+                hpx::is_execution_policy_v<ExPolicy> &&
+                hpx::traits::is_range_v<Rng> &&
+                hpx::parallel::traits::is_projected_range_v<Proj, Rng> &&
+                hpx::parallel::traits::is_indirect_callable_v<
+                    ExPolicy, F,
+                    hpx::parallel::traits::projected_range<Proj, Rng>
+                >
+            )>
         // clang-format on
-        friend typename hpx::parallel::util::detail::algorithm_result<ExPolicy,
-            typename hpx::traits::range_iterator<Rng>::type>::type
-        tag_fallback_invoke(hpx::ranges::for_each_t, ExPolicy&& policy,
-            Rng&& rng, F&& f, Proj&& proj = Proj())
+        friend decltype(auto) tag_fallback_invoke(hpx::ranges::for_each_t,
+            ExPolicy&& policy, Rng&& rng, F&& f, Proj&& proj = Proj())
         {
             using iterator_type =
                 typename hpx::traits::range_traits<Rng>::iterator_type;
 
-            static_assert(
-                (hpx::traits::is_forward_iterator<iterator_type>::value),
+            static_assert((hpx::traits::is_forward_iterator_v<iterator_type>),
                 "Requires at least forward iterator.");
 
             return parallel::v1::detail::for_each<iterator_type>().call(
@@ -513,19 +519,21 @@ namespace hpx { namespace ranges {
     {
         // clang-format off
         template <typename InIter, typename Size, typename F,
-            typename Proj = hpx::parallel::util::projection_identity,
+            typename Proj = hpx::identity,
             HPX_CONCEPT_REQUIRES_(
-                hpx::traits::is_input_iterator<InIter>::value &&
-                hpx::parallel::traits::is_projected<Proj, InIter>::value &&
-                hpx::parallel::traits::is_indirect_callable<
+                hpx::traits::is_iterator_v<InIter> &&
+                hpx::parallel::traits::is_projected_v<Proj, InIter> &&
+                hpx::parallel::traits::is_indirect_callable_v<
                     hpx::execution::sequenced_policy, F,
-                    hpx::parallel::traits::projected<Proj, InIter>>::value)>
+                    hpx::parallel::traits::projected<Proj, InIter>
+                >
+            )>
         // clang-format on
         friend for_each_n_result<InIter, F> tag_fallback_invoke(
             hpx::ranges::for_each_n_t, InIter first, Size count, F&& f,
             Proj&& proj = Proj())
         {
-            static_assert((hpx::traits::is_input_iterator<InIter>::value),
+            static_assert((hpx::traits::is_input_iterator_v<InIter>),
                 "Requires at least input iterator.");
 
             // if count is representing a negative value, we do nothing
@@ -541,20 +549,23 @@ namespace hpx { namespace ranges {
 
         // clang-format off
         template <typename ExPolicy, typename FwdIter, typename Size, typename F,
-            typename Proj = hpx::parallel::util::projection_identity,
+            typename Proj = hpx::identity,
             HPX_CONCEPT_REQUIRES_(
-                hpx::is_execution_policy<ExPolicy>::value &&
-                hpx::traits::is_forward_iterator<FwdIter>::value &&
-                hpx::parallel::traits::is_projected<Proj, FwdIter>::value &&
-                hpx::parallel::traits::is_indirect_callable<ExPolicy, F,
-                    hpx::parallel::traits::projected<Proj, FwdIter>>::value)>
+                hpx::is_execution_policy_v<ExPolicy> &&
+                hpx::traits::is_iterator_v<FwdIter> &&
+                hpx::parallel::traits::is_projected_v<Proj, FwdIter> &&
+                hpx::parallel::traits::is_indirect_callable_v<
+                    ExPolicy, F,
+                    hpx::parallel::traits::projected<Proj, FwdIter>
+                >
+            )>
         // clang-format on
-        friend typename hpx::parallel::util::detail::algorithm_result<ExPolicy,
-            FwdIter>::type
+        friend hpx::parallel::util::detail::algorithm_result_t<ExPolicy,
+            FwdIter>
         tag_fallback_invoke(hpx::ranges::for_each_n_t, ExPolicy&& policy,
             FwdIter first, Size count, F&& f, Proj&& proj = Proj())
         {
-            static_assert((hpx::traits::is_forward_iterator<FwdIter>::value),
+            static_assert((hpx::traits::is_forward_iterator_v<FwdIter>),
                 "Requires at least forward iterator.");
 
             // if count is representing a negative value, we do nothing

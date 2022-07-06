@@ -529,25 +529,27 @@ namespace hpx { namespace parallel { inline namespace v1 {
 
             template <typename ExPolicy, typename FwdIterB, typename FwdIterE,
                 typename F, typename Proj>
-            static constexpr typename util::detail::algorithm_result<ExPolicy,
-                FwdIterB>::type
-            parallel(ExPolicy&& policy, FwdIterB first, FwdIterE last, F&& f,
-                Proj&& proj)
+            static constexpr decltype(auto) parallel(ExPolicy&& policy,
+                FwdIterB first, FwdIterE last, F&& f, Proj&& proj)
             {
-                if (first != last)
+                using result_t =
+                    hpx::parallel::util::detail::algorithm_result<ExPolicy,
+                        FwdIterB>;
+
+                //if (first != last)
                 {
                     auto f1 =
                         for_each_iteration<ExPolicy, F, std::decay_t<Proj>>(
                             HPX_FORWARD(F, f), HPX_FORWARD(Proj, proj));
 
-                    return util::foreach_partitioner<ExPolicy>::call(
-                        HPX_FORWARD(ExPolicy, policy), first,
-                        detail::distance(first, last), HPX_MOVE(f1),
-                        util::projection_identity());
+                    return result_t::get(
+                        util::foreach_partitioner<ExPolicy>::call(
+                            HPX_FORWARD(ExPolicy, policy), first,
+                            detail::distance(first, last), HPX_MOVE(f1),
+                            util::projection_identity()));
                 }
 
-                return util::detail::algorithm_result<ExPolicy, FwdIterB>::get(
-                    HPX_MOVE(first));
+                //return result_t::get(HPX_MOVE(first));
             }
         };
         /// \endcond
@@ -597,8 +599,7 @@ namespace hpx {
                 hpx::traits::is_iterator<FwdIter>::value
             )>
         // clang-format on
-        friend typename hpx::parallel::util::detail::algorithm_result<
-            ExPolicy>::type
+        friend hpx::parallel::util::detail::algorithm_result_t<ExPolicy>
         tag_fallback_invoke(hpx::for_each_t, ExPolicy&& policy, FwdIter first,
             FwdIter last, F&& f)
         {
@@ -609,7 +610,7 @@ namespace hpx {
             {
                 using result =
                     hpx::parallel::util::detail::algorithm_result<ExPolicy>;
-                return result::get();
+                return result::get(HPX_MOVE(first));
             }
 
             return hpx::parallel::util::detail::algorithm_result<ExPolicy>::get(
@@ -655,8 +656,7 @@ namespace hpx {
                 hpx::traits::is_forward_iterator<FwdIter>::value
             )>
         // clang-format on
-        friend typename parallel::util::detail::algorithm_result<ExPolicy,
-            FwdIter>::type
+        friend parallel::util::detail::algorithm_result_t<ExPolicy, FwdIter>
         tag_fallback_invoke(hpx::for_each_n_t, ExPolicy&& policy, FwdIter first,
             Size count, F&& f)
         {

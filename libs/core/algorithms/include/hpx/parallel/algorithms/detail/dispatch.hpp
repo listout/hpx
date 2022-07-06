@@ -1,4 +1,4 @@
-//  Copyright (c) 2007-2021 Hartmut Kaiser
+//  Copyright (c) 2007-2022 Hartmut Kaiser
 //  Copyright (c) 2021 Giannis Gonidelis
 //
 //  SPDX-License-Identifier: BSL-1.0
@@ -103,10 +103,12 @@ namespace hpx { namespace parallel { inline namespace v1 { namespace detail {
         ///////////////////////////////////////////////////////////////////////
         // this equivalent to sequential execution
         template <typename ExPolicy, typename... Args>
-        HPX_HOST_DEVICE hpx::parallel::util::detail::algorithm_result_t<
-            ExPolicy, local_result_type>
-        operator()(ExPolicy&& policy, Args&&... args) const
+        HPX_HOST_DEVICE decltype(auto) operator()(
+            ExPolicy&& policy, Args&&... args) const
         {
+            using result_t =
+                hpx::parallel::util::detail::algorithm_result<ExPolicy,
+                    local_result_type>;
 #if !defined(__CUDA_ARCH__)
             try
             {
@@ -120,17 +122,16 @@ namespace hpx { namespace parallel { inline namespace v1 { namespace detail {
                     parameters_type, executor_type>
                     scoped_param(policy.parameters(), policy.executor());
 
-                return hpx::parallel::util::detail::
-                    algorithm_result<ExPolicy, local_result_type>::get(
-                        Derived::sequential(HPX_FORWARD(ExPolicy, policy),
-                            HPX_FORWARD(Args, args)...));
+                return result_t::get(Derived::sequential(
+                    HPX_FORWARD(ExPolicy, policy), HPX_FORWARD(Args, args)...));
 #if !defined(__CUDA_ARCH__)
             }
             catch (...)
             {
                 // this does not return
-                return hpx::parallel::v1::detail::handle_exception<ExPolicy,
-                    local_result_type>::call();
+                return result_t::get(
+                    hpx::parallel::v1::detail::handle_exception<ExPolicy,
+                        local_result_type>::call());
             }
 #endif
         }
@@ -140,9 +141,8 @@ namespace hpx { namespace parallel { inline namespace v1 { namespace detail {
         // main sequential dispatch entry points
 
         template <typename ExPolicy, typename... Args>
-        constexpr hpx::parallel::util::detail::algorithm_result_t<ExPolicy,
-            local_result_type>
-        call2(ExPolicy&& policy, std::true_type, Args&&... args) const
+        constexpr decltype(auto) call2(
+            ExPolicy&& policy, std::true_type, Args&&... args) const
         {
             using result_handler =
                 hpx::parallel::util::detail::algorithm_result<ExPolicy,
@@ -176,18 +176,16 @@ namespace hpx { namespace parallel { inline namespace v1 { namespace detail {
 
         // main parallel dispatch entry point
         template <typename ExPolicy, typename... Args>
-        HPX_FORCEINLINE static constexpr hpx::parallel::util::detail::
-            algorithm_result_t<ExPolicy, local_result_type>
-            call2(ExPolicy&& policy, std::false_type, Args&&... args)
+        HPX_FORCEINLINE static constexpr decltype(auto) call2(
+            ExPolicy&& policy, std::false_type, Args&&... args)
         {
             return Derived::parallel(
                 HPX_FORWARD(ExPolicy, policy), HPX_FORWARD(Args, args)...);
         }
 
         template <typename ExPolicy, typename... Args>
-        HPX_FORCEINLINE constexpr hpx::parallel::util::detail::
-            algorithm_result_t<ExPolicy, local_result_type>
-            call(ExPolicy&& policy, Args&&... args) const
+        HPX_FORCEINLINE constexpr decltype(auto) call(
+            ExPolicy&& policy, Args&&... args) const
         {
             using is_seq = hpx::is_sequenced_execution_policy<ExPolicy>;
             return call2(HPX_FORWARD(ExPolicy, policy), is_seq(),
@@ -197,31 +195,24 @@ namespace hpx { namespace parallel { inline namespace v1 { namespace detail {
 #if defined(HPX_HAVE_CXX17_STD_EXECUTION_POLICES)
         // main dispatch entry points for std execution policies
         template <typename... Args>
-        HPX_FORCEINLINE constexpr hpx::parallel::util::detail::
-            algorithm_result_t<hpx::execution::sequenced_policy,
-                local_result_type>
-            call(std::execution::sequenced_policy, Args&&... args) const
+        HPX_FORCEINLINE constexpr decltype(auto) call(
+            std::execution::sequenced_policy, Args&&... args) const
         {
             return call2(hpx::execution::seq, std::true_type(),
                 HPX_FORWARD(Args, args)...);
         }
 
         template <typename... Args>
-        HPX_FORCEINLINE constexpr hpx::parallel::util::detail::
-            algorithm_result_t<hpx::execution::parallel_policy,
-                local_result_type>
-            call(std::execution::parallel_policy, Args&&... args) const
+        HPX_FORCEINLINE constexpr decltype(auto) call(
+            std::execution::parallel_policy, Args&&... args) const
         {
             return call2(hpx::execution::par, std::false_type(),
                 HPX_FORWARD(Args, args)...);
         }
 
         template <typename... Args>
-        HPX_FORCEINLINE constexpr hpx::parallel::util::detail::
-            algorithm_result_t<hpx::execution::parallel_unsequenced_policy,
-                local_result_type>
-            call(std::execution::parallel_unsequenced_policy,
-                Args&&... args) const
+        HPX_FORCEINLINE constexpr decltype(auto) call(
+            std::execution::parallel_unsequenced_policy, Args&&... args) const
         {
             return call2(hpx::execution::par_unseq, std::false_type(),
                 HPX_FORWARD(Args, args)...);
@@ -229,10 +220,8 @@ namespace hpx { namespace parallel { inline namespace v1 { namespace detail {
 
 #if defined(HPX_HAVE_CXX20_STD_EXECUTION_POLICES)
         template <typename... Args>
-        HPX_FORCEINLINE constexpr hpx::parallel::util::detail::
-            algorithm_result_t<hpx::execution::unsequenced_policy,
-                local_result_type>
-            call(std::execution::unsequenced_policy, Args&&... args) const
+        HPX_FORCEINLINE constexpr decltype(auto) call(
+            std::execution::unsequenced_policy, Args&&... args) const
         {
             return call2(hpx::execution::unseq, std::false_type(),
                 HPX_FORWARD(Args, args)...);

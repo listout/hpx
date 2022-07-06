@@ -78,6 +78,25 @@ namespace hpx {
     /// of all given futures. It AND-composes all future objects given and
     /// returns after they finished executing.
     ///
+    /// \param f        A \a future or \a shared_future for which
+    ///                 \a wait_all should wait.
+    ///
+    /// \note The function \a wait_all returns after the future has become
+    ///       ready. The input future is still valid after \a wait_all
+    ///       returns.
+    ///
+    /// \note           The function wait_all will rethrow any exceptions
+    ///                 captured by the future while becoming ready. If this
+    ///                 behavior is undesirable, use \a wait_all_nothrow
+    ///                 instead.
+    ///
+    template <typename T>
+    void wait_all(hpx::future<T> const& f);
+
+    /// The function \a wait_all is an operator allowing to join on the result
+    /// of all given futures. It AND-composes all future objects given and
+    /// returns after they finished executing.
+    ///
     /// \param futures  An arbitrary number of \a future or \a shared_future
     ///                 objects, possibly holding different types for which
     ///                 \a wait_all should wait.
@@ -595,6 +614,39 @@ namespace hpx {
             {
                 hpx::detail::throw_if_exceptional(values);
             }
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    bool wait_all_nothrow(hpx::future<T> const& f)
+    {
+        f.wait();
+        return f.has_exception();
+    }
+
+    template <typename T>
+    void wait_all(hpx::future<T> const& f)
+    {
+        if (hpx::wait_all_nothrow(f))
+        {
+            hpx::detail::throw_if_exceptional(f);
+        }
+    }
+
+    template <typename T>
+    bool wait_all_nothrow(hpx::shared_future<T> const& f)
+    {
+        f.wait();
+        return f.has_exception();
+    }
+
+    template <typename T>
+    void wait_all(hpx::shared_future<T> const& f)
+    {
+        if (hpx::wait_all_nothrow(f))
+        {
+            hpx::detail::throw_if_exceptional(f);
         }
     }
 
